@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eat If</title>
+    <style>
+        body {
+            background-color: #e0f7e9; /* Light green background */
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 350px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #388e3c; /* Slightly darker green for heading */
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        form label {
+            display: block;
+            margin-top: 15px;
+            color: #555;
+            font-weight: bold;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        form input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            border-width: 1px;
+            border-color: #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease-in-out;
+        }
+
+        form input:focus {
+            border-color: #388e3c;
+            outline: none;
+        }
+
+        button {
+            background-color: #388e3c; /* Slightly darker green button */
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #2e7d32;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #388e3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Eat If</h1>
+        <form id="foodForm">
+            <label for="calories">Calories:</label>
+            <input type="text" id="calories" name="calories" placeholder="Enter calories">
+
+            <label for="protein">Protein:</label>
+            <input type="text" id="protein" name="protein" placeholder="Enter protein content">
+
+            <label for="carbohydrate">Carbohydrate:</label>
+            <input type="text" id="carbohydrate" name="carbohydrate" placeholder="Enter carbohydrate content">
+
+            <label for="totalFat">Total Fat:</label>
+            <input type="text" id="totalFat" name="totalFat" placeholder="Enter total fat content">
+
+            <button type="button" onclick="predict()">Predict</button>
+        </form>
+        <h2 id="result"></h2>
+    </div>
+
+    <script>
+        function predict() {
+            const calories = document.getElementById('calories').value;
+            const protein = document.getElementById('protein').value;
+            const carbohydrate = document.getElementById('carbohydrate').value;
+            const totalFat = document.getElementById('totalFat').value;
+
+            const data = {
+                "Calories": calories ? parseFloat(calories) : null,
+                "Protein": protein ? parseFloat(protein) : null,
+                "Carbohydrate": carbohydrate ? parseFloat(carbohydrate) : null,
+                "Total fat": totalFat ? parseFloat(totalFat) : null
+            };
+
+            fetch('http://127.0.0.1:5000/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = data.message;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
