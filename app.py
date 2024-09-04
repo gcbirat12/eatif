@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import joblib
 import pandas as pd
@@ -18,11 +18,12 @@ category_messages = {
     "Nourishing": "Eat if you want to stay healthy. You know, like a grown-up."
 }
 
-# Home page route
+# Home page route that renders index.html
 @app.route('/')
 def home():
-    return "Welcome to the Eat If Prediction API!"
+    return render_template('index.html')
 
+# Prediction route
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
