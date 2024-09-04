@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import joblib
 import pandas as pd
+import os
 
 # Initialize the Flask app
 app = Flask(__name__)
@@ -47,4 +48,6 @@ def predict():
     return jsonify({'category': category, 'message': message})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))  # Use the PORT environment variable provided by Heroku
+    app.run(host='0.0.0.0', port=port)
+
