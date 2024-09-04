@@ -18,6 +18,11 @@ category_messages = {
     "Nourishing": "Eat if you want to stay healthy. You know, like a grown-up."
 }
 
+# Home page route
+@app.route('/')
+def home():
+    return "Welcome to the Eat If Prediction API!"
+
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
