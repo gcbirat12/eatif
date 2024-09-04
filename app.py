@@ -27,6 +27,7 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
+    print("Received data:", data)  # Log the incoming data to check if it's being received
     
     # Extract features from the request data
     input_data = {
