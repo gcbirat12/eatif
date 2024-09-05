@@ -107,15 +107,16 @@
             const protein = document.getElementById('protein').value;
             const carbohydrate = document.getElementById('carbohydrate').value;
             const totalFat = document.getElementById('totalFat').value;
-
+    
             const data = {
                 "Calories": calories ? parseFloat(calories) : null,
                 "Protein": protein ? parseFloat(protein) : null,
                 "Carbohydrate": carbohydrate ? parseFloat(carbohydrate) : null,
                 "Total fat": totalFat ? parseFloat(totalFat) : null
             };
-
-            fetch('http://127.0.0.1:5000/predict', {
+    
+            // Use relative path for Heroku
+            fetch('/predict', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -130,6 +131,6 @@
                 console.error('Error:', error);
             });
         }
-    </script>
+    </script>    
 </body>
 </html>
