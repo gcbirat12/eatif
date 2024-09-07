@@ -6,7 +6,7 @@
     <title>Eat If</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts for welcoming text -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
@@ -46,7 +46,7 @@
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            max-width: 350px;
+            max-width: 400px;
             width: 100%;
             text-align: center;
         }
@@ -93,7 +93,6 @@
             border-radius: 5px;
             font-size: 16px;
             cursor: pointer;
-            margin-top: 10px;
             transition: background-color 0.3s ease-in-out;
         }
 
@@ -115,8 +114,6 @@
     <!-- Main content -->
     <div class="container" id="mainContent">
         <h1>Eat If</h1>
-
-        <!-- Manual input form -->
         <form id="foodForm">
             <label for="calories">Calories:</label>
             <input type="text" id="calories" name="calories" placeholder="Enter calories">
@@ -134,10 +131,10 @@
         </form>
 
         <!-- Image upload form -->
-        <form id="uploadForm">
-            <label for="imageInput">Upload Nutritional Label:</label>
-            <input type="file" id="imageInput" accept="image/*">
-            <button type="button" onclick="uploadImage()">Upload</button>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label for="file">Upload Nutritional Label:</label>
+            <input type="file" id="file" name="file">
+            <button type="button" onclick="upload()">Upload</button>
         </form>
 
         <h2 id="result"></h2>
@@ -175,13 +172,12 @@
             const totalFat = document.getElementById('totalFat').value;
 
             const data = {
-                "Calories": calories ? parseFloat(calories) : null,
-                "Protein": protein ? parseFloat(protein) : null,
-                "Carbohydrate": carbohydrate ? parseFloat(carbohydrate) : null,
-                "Total fat": totalFat ? parseFloat(totalFat) : null
+                "Calories": calories,
+                "Protein": protein,
+                "Carbohydrate": carbohydrate,
+                "Total fat": totalFat
             };
 
-            // Use relative path for Heroku
             fetch('/predict', {
                 method: 'POST',
                 headers: {
@@ -199,17 +195,10 @@
         }
 
         // Image upload function
-        function uploadImage() {
-            const fileInput = document.getElementById('imageInput');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert("Please select an image to upload.");
-                return;
-            }
-
+        function upload() {
+            const fileInput = document.getElementById('file');
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', fileInput.files[0]);
 
             fetch('/upload', {
                 method: 'POST',
@@ -217,14 +206,9 @@
             })
             .then(response => response.json())
             .then(data => {
-                const result = document.getElementById('result');
-                if (data.error) {
-                    result.innerText = "Error: " + data.error;
-                } else {
-                    result.innerText = `Calories: ${data.Calories}\nProtein: ${data.Protein}\nCarbohydrates: ${data.Carbohydrate}\nTotal Fat: ${data['Total Fat']}`;
-                }
+                document.getElementById('result').innerText = `Calories: ${data.Calories}, Protein: ${data.Protein}, Total Fat: ${data.TotalFat}, Carbohydrates: ${data.Carbohydrates}. Prediction: ${data['Eat If Prediction']}`;
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error('Error:', error);
             });
         }
