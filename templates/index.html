@@ -93,6 +93,7 @@
             border-radius: 5px;
             font-size: 16px;
             cursor: pointer;
+            margin-top: 10px;
             transition: background-color 0.3s ease-in-out;
         }
 
@@ -114,6 +115,8 @@
     <!-- Main content -->
     <div class="container" id="mainContent">
         <h1>Eat If</h1>
+
+        <!-- Manual input form -->
         <form id="foodForm">
             <label for="calories">Calories:</label>
             <input type="text" id="calories" name="calories" placeholder="Enter calories">
@@ -129,6 +132,14 @@
 
             <button type="button" onclick="predict()">Go!</button>
         </form>
+
+        <!-- Image upload form -->
+        <form id="uploadForm">
+            <label for="imageInput">Upload Nutritional Label:</label>
+            <input type="file" id="imageInput" accept="image/*">
+            <button type="button" onclick="uploadImage()">Upload</button>
+        </form>
+
         <h2 id="result"></h2>
     </div>
 
@@ -183,6 +194,37 @@
                 document.getElementById('result').innerText = data.message;
             })
             .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Image upload function
+        function uploadImage() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select an image to upload.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const result = document.getElementById('result');
+                if (data.error) {
+                    result.innerText = "Error: " + data.error;
+                } else {
+                    result.innerText = `Calories: ${data.Calories}\nProtein: ${data.Protein}\nCarbohydrates: ${data.Carbohydrate}\nTotal Fat: ${data['Total Fat']}`;
+                }
+            })
+            .catch(error => {
                 console.error('Error:', error);
             });
         }
