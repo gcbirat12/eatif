@@ -1,15 +1,15 @@
+import pytesseract
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import joblib
 import pandas as pd
 import os
-import pytesseract
+from werkzeug.utils import secure_filename
 from PIL import Image
-import re
 
 # Initialize the Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
 # Load the model and label encoder trained with SMOTE
 model = joblib.load('eat_if_model_smote.pkl')
@@ -22,16 +22,24 @@ category_messages = {
     "Nourishing": "Eat if you want to stay healthy. You know, like a grown-up."
 }
 
+# Define the nutritional label keywords and their variations
+label_variations = {
+    "Calories": ["Calories", "Total Calories"],
+    "Protein": ["Protein", "Total Protein"],
+    "Carbohydrate": ["Carbohydrate", "Total Carbohydrate"],
+    "Total fat": ["Fat", "Total Fat"]
+}
+
 # Home page route that renders index.html
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Prediction route for manual inputs
+# Prediction route
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
-    print("Received data:", data)  # Log the incoming data to check if it's being received
+    print("Received data:", data)
     
     # Extract features from the request data
     input_data = {
@@ -50,51 +58,60 @@ def predict():
     
     return jsonify({'category': category, 'message': message})
 
-# Upload route for image processing
+# Helper function to extract nutritional values
+def extract_nutritional_values(text):
+    extracted_values = {
+        "Calories": None,
+        "Protein": None,
+        "Carbohydrate": None,
+        "Total fat": None
+    }
+    
+    # Loop over each label and its variations
+    for label, variations in label_variations.items():
+        for variation in variations:
+            if variation in text:
+                try:
+                    # Extract the number after the variation
+                    number = text.split(variation)[-1].strip().split()[0]
+                    extracted_values[label] = float(number)
+                except (IndexError, ValueError):
+                    continue
+    return extracted_values
+
+# Image upload route
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+        return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files['file']
-    
     if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+        return jsonify({"error": "No file selected"}), 400
 
-    try:
-        # Open the image using PIL
-        img = Image.open(file.stream)
+    filename = secure_filename(file.filename)
+    filepath = os.path.join('/tmp', filename)
+    file.save(filepath)
 
-        # Use Tesseract to extract text from the image
-        extracted_text = pytesseract.image_to_string(img)
-        print("Extracted Text:", extracted_text)
+    # Extract text from image using OCR
+    image = Image.open(filepath)
+    ocr_text = pytesseract.image_to_string(image)
 
-        # Use regex to extract the nutritional values from the text
-        nutrition_data = extract_nutritional_info(extracted_text)
+    # Extract nutritional values from the OCR text
+    nutritional_values = extract_nutritional_values(ocr_text)
 
-        if not nutrition_data:
-            return jsonify({'error': 'Unable to extract nutritional information.'}), 400
+    # Predict using the extracted values
+    df = pd.DataFrame([nutritional_values])
+    prediction = model.predict(df)
+    category = label_encoder.inverse_transform(prediction)[0]
+    message = category_messages.get(category, "Unknown category... Just eat whatever you want!")
 
-        return jsonify(nutrition_data)
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-def extract_nutritional_info(text):
-    # Simple regex patterns to extract calories, protein, carbohydrates, and total fat
-    nutrition_info = {
-        'Calories': extract_value(text, r'Calories\s*(\d+)'),
-        'Protein': extract_value(text, r'Protein\s*(\d+\.?\d*)'),
-        'Carbohydrate': extract_value(text, r'Carbohydrate\s*(\d+\.?\d*)'),
-        'Total Fat': extract_value(text, r'Total\s*Fat\s*(\d+\.?\d*)')
-    }
-    
-    return nutrition_info if any(nutrition_info.values()) else None
-
-def extract_value(text, pattern):
-    match = re.search(pattern, text, re.IGNORECASE)
-    return float(match.group(1)) if match else None
+    return jsonify({
+        "nutritional_values": nutritional_values,
+        "category": category,
+        "message": message
+    })
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Use the PORT environment variable provided by Heroku
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
