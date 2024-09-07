@@ -1,90 +1,53 @@
 from flask import Flask, request, jsonify, render_template
-import pytesseract
-from PIL import Image
+from flask_cors import CORS
+import joblib
+import pandas as pd
 import os
-import re
 
+# Initialize the Flask app
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
-# Set the TESSDATA_PREFIX environment variable
-os.environ["TESSDATA_PREFIX"] = "/app/tessdata/"
+# Load the model and label encoder trained with SMOTE
+model = joblib.load('eat_if_model_smote.pkl')
+label_encoder = joblib.load('label_encoder_smote.pkl')
 
-# Route for the home page
+# Define the mapping of categories to satirical messages
+category_messages = {
+    "Balanced": "Eat if you want to stay balanced. Because, why not?",
+    "Indulgent": "Eat if you want to gain weight. lol.",
+    "Nourishing": "Eat if you want to stay healthy. You know, like a grown-up."
+}
+
+# Home page route that renders index.html
 @app.route('/')
-def index():
+def home():
     return render_template('index.html')
 
-# Prediction route for form inputs
+# Prediction route
 @app.route('/predict', methods=['POST'])
 def predict():
-    try:
-        data = request.get_json()
-        calories = data.get('Calories')
-        protein = data.get('Protein')
-        carbohydrate = data.get('Carbohydrate')
-        total_fat = data.get('Total fat')
-
-        # Simple logic based on the input for the Eat If feature
-        if calories and calories < 300:
-            message = "Eat If... it fits within your daily intake."
-        else:
-            message = "Eat If... you're ready for some extra energy!"
-
-        return jsonify({"message": message})
-
-    except Exception as e:
-        return jsonify({"error": str(e)})
-
-# Route to handle image upload
-@app.route('/upload', methods=['POST'])
-def upload_image():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part"})
+    data = request.json
+    print("Received data:", data)  # Log the incoming data to check if it's being received
     
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No selected file"})
+    # Extract features from the request data
+    input_data = {
+        "Calories": data.get('Calories', None),
+        "Protein": data.get('Protein', None),
+        "Carbohydrate": data.get('Carbohydrate', None),
+        "Total fat": data.get('Total fat', None)
+    }
     
-    if file:
-        try:
-            # Open the image file
-            img = Image.open(file.stream)
-
-            # Use pytesseract to do OCR on the image
-            extracted_text = pytesseract.image_to_string(img)
-            
-            # Try to extract relevant nutritional information using regex
-            calories = extract_value(extracted_text, ['Total Calories', 'Calories'])
-            total_fat = extract_value(extracted_text, ['Total Fat', 'Fat'])
-            protein = extract_value(extracted_text, ['Total Protein', 'Protein'])
-            carbohydrate = extract_value(extracted_text, ['Total Carbohydrate', 'Carbohydrates'])
-
-            # Create a dictionary to return the results
-            result = {
-                "Calories": calories if calories is not None else "Not found",
-                "Total Fat": total_fat if total_fat is not None else "Not found",
-                "Protein": protein if protein is not None else "Not found",
-                "Carbohydrates": carbohydrate if carbohydrate is not None else "Not found"
-            }
-
-            # Perform Eat If prediction
-            if calories and float(calories) < 300:
-                result["Eat If Prediction"] = "Eat If... it fits within your daily intake."
-            else:
-                result["Eat If Prediction"] = "Eat If... you're ready for some extra energy!"
-            
-            return jsonify(result)
-        except Exception as e:
-            return jsonify({"error": str(e)})
-
-def extract_value(text, keywords):
-    """Extracts a numeric value from the text based on provided keywords."""
-    for keyword in keywords:
-        match = re.search(rf'{keyword}[\s:]*([0-9]+)', text, re.IGNORECASE)
-        if match:
-            return match.group(1)
-    return None
+    df = pd.DataFrame([input_data])
+    
+    # Make a prediction
+    prediction = model.predict(df)
+    category = label_encoder.inverse_transform(prediction)[0]
+    message = category_messages.get(category, "Unknown category... Just eat whatever you want!")
+    
+    return jsonify({'category': category, 'message': message})
 
 if __name__ == '__main__':
-    app.config['SECRET_KEY'] = 'yoursecretkey'
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))  # Use the PORT environment variable provided by Heroku
+    app.run(host='0.0.0.0', port=port)
+
