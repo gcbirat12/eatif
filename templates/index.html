@@ -5,8 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eat If</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-
+    
     <style>
+        /* Splash screen styling */
+        #splash {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: #e0f7e9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-size: 36px;
+            color: #388e3c;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Hides the main content initially */
+        #mainContent {
+            display: none;
+        }
+
         body {
             background-color: #e0f7e9; /* Light green background */
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -83,7 +103,11 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Splash Screen -->
+    <div id="splash">Eat If.</div>
+
+    <!-- Main content -->
+    <div class="container" id="mainContent">
         <h1>Eat If</h1>
         <form id="foodForm">
             <label for="calories">Calories:</label>
@@ -98,25 +122,48 @@
             <label for="totalFat">Total Fat:</label>
             <input type="text" id="totalFat" name="totalFat" placeholder="Enter total fat content">
 
-            <button type="button" onclick="predict()">Predict</button>
+            <button type="button" onclick="predict()">Go!</button>
         </form>
         <h2 id="result"></h2>
     </div>
 
     <script>
+        // Function to simulate splash screen with Eat If... effect
+        const splash = document.getElementById('splash');
+        let splashText = "Eat If.";
+        let splashDots = 0;
+
+        const splashInterval = setInterval(() => {
+            if (splashDots < 3) {
+                splashText += ".";
+                splashDots++;
+            } else {
+                splashText = "Eat If.";
+                splashDots = 0;
+            }
+            splash.innerHTML = splashText;
+        }, 500);
+
+        // Hide splash and show main content after a few seconds
+        setTimeout(() => {
+            clearInterval(splashInterval);
+            splash.style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        }, 3000);
+
         function predict() {
             const calories = document.getElementById('calories').value;
             const protein = document.getElementById('protein').value;
             const carbohydrate = document.getElementById('carbohydrate').value;
             const totalFat = document.getElementById('totalFat').value;
-    
+
             const data = {
                 "Calories": calories ? parseFloat(calories) : null,
                 "Protein": protein ? parseFloat(protein) : null,
                 "Carbohydrate": carbohydrate ? parseFloat(carbohydrate) : null,
                 "Total fat": totalFat ? parseFloat(totalFat) : null
             };
-    
+
             // Use relative path for Heroku
             fetch('/predict', {
                 method: 'POST',
@@ -133,6 +180,6 @@
                 console.error('Error:', error);
             });
         }
-    </script>    
+    </script>
 </body>
 </html>
