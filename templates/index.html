@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eat If</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-
-    <!-- Google Fonts for Futuristic Theme -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
         /* General styling */
         body {
-            background-color: #0d0d0d; /* Dark space-like background */
-            font-family: 'Exo 2', sans-serif; /* Use Exo 2 for body text */
+            background-color: #0a0f1c; /* Dark space-like background */
+            color: #ffffff; /* White text */
+            font-family: 'Orbitron', sans-serif; /* Use Orbitron font for futuristic look */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            color: #fff; /* White text for better contrast */
         }
 
         /* Splash screen styling */
@@ -27,16 +27,14 @@
             position: fixed;
             width: 100%;
             height: 100%;
-            background-color: #001f3f; /* Deep space blue */
+            background-color: #152238; /* Deep space-like blue */
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            font-size: 50px;
-            color: #00ff99; /* Neon green for futuristic look */
+            font-size: 48px;
+            color: #00e5ff; /* Bright neon blue for text */
             font-weight: 700;
-            font-family: 'Orbitron', sans-serif; /* Orbitron font for splash screen */
-            letter-spacing: 2px;
         }
 
         /* Hide the main content initially */
@@ -45,27 +43,26 @@
         }
 
         .container {
-            background-color: #111111;
+            background-color: #1c2738; /* Slightly lighter dark background */
             padding: 40px;
             border-radius: 15px;
-            box-shadow: 0 4px 30px rgba(0, 255, 153, 0.2); /* Futuristic neon glow */
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.3); /* Neon blue glow */
             max-width: 400px;
             width: 100%;
             text-align: center;
         }
 
         h1 {
-            color: #00ff99; /* Neon green for heading */
+            color: #00e5ff; /* Bright blue for heading */
             margin-bottom: 25px;
-            font-size: 30px;
+            font-size: 28px;
             font-weight: 700;
-            font-family: 'Orbitron', sans-serif;
         }
 
         form label {
             display: block;
             margin-top: 15px;
-            color: #a3a3a3;
+            color: #80d8ff; /* Lighter blue for form labels */
             font-weight: bold;
             text-align: left;
             font-size: 14px;
@@ -77,23 +74,23 @@
             margin-top: 5px;
             margin-bottom: 20px;
             border-width: 1px;
-            border-color: #444;
+            border-color: #00e5ff; /* Neon blue border */
             border-radius: 5px;
+            background-color: #101828;
+            color: #ffffff;
             font-size: 16px;
-            background-color: #222; /* Darker background for input */
-            color: #fff;
             box-sizing: border-box;
             transition: border-color 0.3s ease-in-out;
         }
 
         form input:focus {
-            border-color: #00ff99;
+            border-color: #00e5ff;
             outline: none;
         }
 
         button {
-            background-color: #00ff99; /* Neon green button */
-            color: #000; /* Black text */
+            background-color: #00e5ff; /* Neon blue button */
+            color: white;
             border: none;
             padding: 12px 20px;
             border-radius: 5px;
@@ -103,19 +100,31 @@
         }
 
         button:hover {
-            background-color: #00cc7a;
+            background-color: #0088cc;
         }
 
-        #result {
+        #result, .entry-log {
             margin-top: 20px;
             font-size: 18px;
-            color: #00ff99;
+            color: #00e5ff;
+        }
+
+        .entry-log {
+            background-color: #1c2738;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .clear-button {
+            margin-top: 20px;
+            background-color: #e53935; /* Red button for clearing logs */
         }
     </style>
 </head>
 <body>
     <!-- Splash Screen -->
-    <div id="splash">Eat If...</div>
+    <div id="splash">Eat If.</div>
 
     <!-- Main content -->
     <div class="container" id="mainContent">
@@ -135,7 +144,15 @@
 
             <button type="button" onclick="predict()">Go!</button>
         </form>
+
         <h2 id="result"></h2>
+
+        <!-- Display previous entries -->
+        <div id="previousEntries">
+            <h3>Previous Entries</h3>
+            <div id="entriesLog"></div>
+            <button class="clear-button" onclick="clearLogs()">Clear Logs</button>
+        </div>
     </div>
 
     <script>
@@ -186,6 +203,29 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById('result').innerText = data.message;
+                updateEntriesLog(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Update the entries log
+        function updateEntriesLog(entry) {
+            const entriesLog = document.getElementById('entriesLog');
+            const logEntry = document.createElement('div');
+            logEntry.classList.add('entry-log');
+            logEntry.innerText = `Calories: ${entry.Calories}, Protein: ${entry.Protein}, Carbohydrate: ${entry.Carbohydrate}, Total Fat: ${entry['Total fat']}, Prediction: ${entry.message}`;
+            entriesLog.appendChild(logEntry);
+        }
+
+        // Clear previous logs
+        function clearLogs() {
+            fetch('/clear_logs', {
+                method: 'POST'
+            })
+            .then(() => {
+                document.getElementById('entriesLog').innerHTML = '';
             })
             .catch((error) => {
                 console.error('Error:', error);
