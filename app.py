@@ -7,7 +7,7 @@ import os
 # Initialize the Flask app
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
-app.secret_key = 'yoursecretkey'  # Secret key for session
+app.secret_key = os.environ.get('SECRET_KEY', 'supersecretkey')
 
 # Load the model and label encoder trained with SMOTE
 model = joblib.load('eat_if_model_smote.pkl')
@@ -23,7 +23,7 @@ category_messages = {
 # Home page route that renders index.html
 @app.route('/')
 def home():
-    # Get previous entries from session
+    # Get previous entries from session if they exist
     previous_entries = session.get('entries', [])
     return render_template('index.html', previous_entries=previous_entries)
 
@@ -47,28 +47,21 @@ def predict():
     prediction = model.predict(df)
     category = label_encoder.inverse_transform(prediction)[0]
     message = category_messages.get(category, "Unknown category... Just eat whatever you want!")
-    
-    # Store the current entry in session
+
+    # Store entry in session
     if 'entries' not in session:
         session['entries'] = []
     
-    # Add the new entry to the session
-    session['entries'].append({
-        'Calories': data.get('Calories'),
-        'Protein': data.get('Protein'),
-        'Carbohydrate': data.get('Carbohydrate'),
-        'Total fat': data.get('Total fat'),
-        'Category': category,
-        'Message': message
-    })
+    session['entries'].append(input_data)
+    session.modified = True  # Mark session as modified to ensure the new entry is saved
     
     return jsonify({'category': category, 'message': message})
 
-# Clear the session logs
-@app.route('/clear_logs', methods=['POST'])
-def clear_logs():
-    session.pop('entries', None)
-    return jsonify({'message': 'Logs cleared successfully.'})
+# Route to clear the log of previous entries
+@app.route('/clear_entries', methods=['POST'])
+def clear_entries():
+    session.pop('entries', None)  # Remove previous entries from session
+    return jsonify({'message': 'Entries cleared'})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))  # Use the PORT environment variable provided by Heroku

@@ -7,19 +7,19 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         /* General styling */
         body {
-            background-color: #0a0f1c; /* Dark space-like background */
-            color: #ffffff; /* White text */
-            font-family: 'Orbitron', sans-serif; /* Use Orbitron font for futuristic look */
+            background-color: #111; /* Dark space-like background */
+            font-family: 'Orbitron', sans-serif; /* Use Orbitron font for a futuristic feel */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            color: #00e676; /* Bright green for futuristic look */
         }
 
         /* Splash screen styling */
@@ -27,14 +27,14 @@
             position: fixed;
             width: 100%;
             height: 100%;
-            background-color: #152238; /* Deep space-like blue */
+            background-color: #000; /* Black background for splash */
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
             font-size: 48px;
-            color: #00e5ff; /* Bright neon blue for text */
-            font-weight: 700;
+            color: #00e676; /* Neon green for text */
+            font-weight: 600;
         }
 
         /* Hide the main content initially */
@@ -43,26 +43,26 @@
         }
 
         .container {
-            background-color: #1c2738; /* Slightly lighter dark background */
+            background-color: #333;
             padding: 40px;
             border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.3); /* Neon blue glow */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
             max-width: 400px;
             width: 100%;
             text-align: center;
         }
 
         h1 {
-            color: #00e5ff; /* Bright blue for heading */
+            color: #00e676;
             margin-bottom: 25px;
             font-size: 28px;
-            font-weight: 700;
+            font-weight: 600;
         }
 
         form label {
             display: block;
             margin-top: 15px;
-            color: #80d8ff; /* Lighter blue for form labels */
+            color: #fff;
             font-weight: bold;
             text-align: left;
             font-size: 14px;
@@ -74,23 +74,23 @@
             margin-top: 5px;
             margin-bottom: 20px;
             border-width: 1px;
-            border-color: #00e5ff; /* Neon blue border */
+            border-color: #00e676;
             border-radius: 5px;
-            background-color: #101828;
-            color: #ffffff;
             font-size: 16px;
             box-sizing: border-box;
+            background-color: #222;
+            color: #00e676;
             transition: border-color 0.3s ease-in-out;
         }
 
         form input:focus {
-            border-color: #00e5ff;
+            border-color: #00e676;
             outline: none;
         }
 
         button {
-            background-color: #00e5ff; /* Neon blue button */
-            color: white;
+            background-color: #00e676;
+            color: #111;
             border: none;
             padding: 12px 20px;
             border-radius: 5px;
@@ -100,65 +100,74 @@
         }
 
         button:hover {
-            background-color: #0088cc;
+            background-color: #00b248;
         }
 
-        #result, .entry-log {
+        #result {
             margin-top: 20px;
             font-size: 18px;
-            color: #00e5ff;
+            color: #00e676;
         }
 
-        .entry-log {
-            background-color: #1c2738;
-            border-radius: 8px;
-            padding: 10px;
+        /* Previous entries styling */
+        .previous-entries {
+            margin-top: 40px;
+            color: #fff;
+            text-align: left;
+        }
+
+        .entry {
             margin-bottom: 10px;
-        }
-
-        .clear-button {
-            margin-top: 20px;
-            background-color: #e53935; /* Red button for clearing logs */
         }
     </style>
 </head>
 <body>
     <!-- Splash Screen -->
-    <div id="splash">Eat If.</div>
+    <div id="splash">Eat If...</div>
 
     <!-- Main content -->
     <div class="container" id="mainContent">
         <h1>Eat If</h1>
         <form id="foodForm">
             <label for="calories">Calories:</label>
-            <input type="text" id="calories" name="calories" placeholder="Enter calories">
+            <input type="number" id="calories" name="calories" placeholder="Enter calories">
 
             <label for="protein">Protein:</label>
-            <input type="text" id="protein" name="protein" placeholder="Enter protein content">
+            <input type="number" id="protein" name="protein" placeholder="Enter protein content">
 
             <label for="carbohydrate">Carbohydrate:</label>
-            <input type="text" id="carbohydrate" name="carbohydrate" placeholder="Enter carbohydrate content">
+            <input type="number" id="carbohydrate" name="carbohydrate" placeholder="Enter carbohydrate content">
 
             <label for="totalFat">Total Fat:</label>
-            <input type="text" id="totalFat" name="totalFat" placeholder="Enter total fat content">
+            <input type="number" id="totalFat" name="totalFat" placeholder="Enter total fat content">
 
             <button type="button" onclick="predict()">Go!</button>
         </form>
-
         <h2 id="result"></h2>
 
-        <!-- Display previous entries -->
-        <div id="previousEntries">
+        <!-- Previous entries section -->
+        <div class="previous-entries">
             <h3>Previous Entries</h3>
-            <div id="entriesLog"></div>
-            <button class="clear-button" onclick="clearLogs()">Clear Logs</button>
+            {% if previous_entries %}
+                <ul>
+                    {% for entry in previous_entries %}
+                        <li class="entry">
+                            Calories: {{ entry['Calories'] }}, Protein: {{ entry['Protein'] }},
+                            Carbohydrate: {{ entry['Carbohydrate'] }}, Total Fat: {{ entry['Total fat'] }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No previous entries.</p>
+            {% endif %}
+            <button onclick="clearEntries()">Clear Logs</button>
         </div>
     </div>
 
     <script>
         // Splash screen animation
         const splash = document.getElementById('splash');
-        let splashText = "Eat If.";
+        let splashText = "Eat If...";
         let splashDots = 0;
 
         const splashInterval = setInterval(() => {
@@ -166,7 +175,7 @@
                 splashText += ".";
                 splashDots++;
             } else {
-                splashText = "Eat If.";
+                splashText = "Eat If...";
                 splashDots = 0;
             }
             splash.innerHTML = splashText;
@@ -203,29 +212,20 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById('result').innerText = data.message;
-                updateEntriesLog(data);
             })
             .catch((error) => {
                 console.error('Error:', error);
             });
         }
 
-        // Update the entries log
-        function updateEntriesLog(entry) {
-            const entriesLog = document.getElementById('entriesLog');
-            const logEntry = document.createElement('div');
-            logEntry.classList.add('entry-log');
-            logEntry.innerText = `Calories: ${entry.Calories}, Protein: ${entry.Protein}, Carbohydrate: ${entry.Carbohydrate}, Total Fat: ${entry['Total fat']}, Prediction: ${entry.message}`;
-            entriesLog.appendChild(logEntry);
-        }
-
-        // Clear previous logs
-        function clearLogs() {
-            fetch('/clear_logs', {
+        // Clear entries function
+        function clearEntries() {
+            fetch('/clear_entries', {
                 method: 'POST'
             })
-            .then(() => {
-                document.getElementById('entriesLog').innerHTML = '';
+            .then(response => response.json())
+            .then(data => {
+                location.reload();  // Reload the page to update the entries
             })
             .catch((error) => {
                 console.error('Error:', error);
