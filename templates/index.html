@@ -20,6 +20,7 @@
             height: 100vh;
             margin: 0;
             color: #fff; /* White text for better contrast */
+            flex-direction: column;
         }
 
         /* Splash screen styling */
@@ -39,6 +40,15 @@
             letter-spacing: 2px;
         }
 
+        /* Astronaut silhouette styling */
+        #astronaut {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 150px; /* Adjust size of astronaut */
+            opacity: 0.8; /* Make it semi-transparent */
+        }
+
         /* Hide the main content initially */
         #mainContent {
             display: none;
@@ -52,6 +62,34 @@
             max-width: 400px;
             width: 100%;
             text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .description-container {
+            background-color: #222222;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 255, 153, 0.2); /* Futuristic neon glow for description box */
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            color: #a3a3a3;
+            font-size: 14px;
+            font-family: 'Exo 2', sans-serif;
+            margin-bottom: 20px;
+        }
+
+        .coming-soon-container {
+            background-color: #222222;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 255, 153, 0.2); /* Futuristic neon glow for coming soon box */
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            color: #ffcc00;
+            font-size: 16px;
+            font-family: 'Orbitron', sans-serif;
         }
 
         h1 {
@@ -115,7 +153,15 @@
 </head>
 <body>
     <!-- Splash Screen -->
-    <div id="splash">Eat If...</div>
+    <div id="splash">
+        Eat If...
+        <img id="astronaut" src="{{ url_for('static', filename='astronaut-silhouette.png') }}" alt="Astronaut">
+    </div>
+
+    <!-- Description in a separate container at the top -->
+    <div class="description-container">
+        <p>Eat If is a user-friendly web application that provides dietary recommendations based on the nutritional content of food, such as calories, protein, carbohydrates, and fat. Using advanced machine learning techniques, the app categorizes food items into balanced, indulgent, or nourishing categories, offering ironic and engaging feedback. Powered by Python and scikit-learn, 'Eat If' leverages pre-trained models to provide quick and accurate recommendations. Perfect for health-conscious individuals, it’s also an example of how AI and data science can enhance everyday decision-making.</p>
+    </div>
 
     <!-- Main content -->
     <div class="container" id="mainContent">
@@ -136,6 +182,11 @@
             <button type="button" onclick="predict()">Go!</button>
         </form>
         <h2 id="result"></h2>
+    </div>
+
+    <!-- Coming soon feature box -->
+    <div class="coming-soon-container">
+        <p>Eat If Pet Version is Coming Soon!</p>
     </div>
 
     <script>
